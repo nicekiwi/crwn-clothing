@@ -6,15 +6,26 @@ export const fetchCollectionsStart = () => ({
     type: ShopActionTypes.FETCH_COLLECTIONS_START,
 });
 
+export const fetchCollectionsSuccess = collectionsMap => ({
+    type: ShopActionTypes.FETCH_COLLECTIONS_SUCCESS,
+    payload: collectionsMap
+});
+
+export const fetchCollectionsFailure = errorMessage => ({
+    type: ShopActionTypes.FETCH_COLLECTIONS_FAILURE,
+    payload: errorMessage
+});
+
 export const fetchCollectionsStartAsync = () => {
     return dispatch => {
-        const { updateCollections } = this.props;
         const collectionRef = firestore.collection('collections');
+        dispatch(fetchCollectionsStart());
 
-        this.unsubscribeFromSnapshot = collectionRef.onSnapshot(async snapshot => {
-            const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
-            updateCollections(collectionsMap);
-            this.setState({ isLoading: false });
-        })
+        collectionRef.get()
+            .then(snapshot => {
+                const collectionsMap = convertCollectionsSnapshotToMap(snapshot);
+                dispatch(fetchCollectionsSuccess(collectionsMap));
+            })
+            .catch(error => dispatch(fetchCollectionsFailure(error.message)))
     }
 } 
